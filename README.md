@@ -1,6 +1,6 @@
 # yl.py
-___
-#### A command line tool for controlling Yeelight RGB lightbulbs
+
+##### A command line tool for controlling Yeelight RGB lightbulbs
 
 ## Usage:
 `$ python yl.py command argument`
@@ -21,3 +21,26 @@ ___
   - `green`
   - `blue`
   - a hex code in the form `'#ffffff'`
+
+## Installation:
+Install the only dependency:
+`pip install yeelight`
+
+Run
+
+`$ git clone https://github.com/electrocamel/yl.py .yl`
+
+and then add an alias to your `.bashrc` or `.zshrc`:
+
+`alias yee="python .yl/yl.py"`.
+
+You can now turn your Yeelight on and off using
+`$ yee power toggle`!
+
+## TODO:
+* Ask for the bulb's IP when first run (you have to manually edit it at the moment)
+* Support natural values for `bright` and `temp`: (e.g. "full", "cold", etc.)
+* Multi-bulb support
+* Scene support
+
+This is very much a work-in-progress. Any and all contributions, issues included, are very appreciated.
