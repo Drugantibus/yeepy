@@ -1,16 +1,25 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
 from yeelight import *
-import argparse, argcomplete
+import argparse
 import re
 
 bulb = Bulb("192.168.1.150")
 
+# CLI help message stuff
 parser = argparse.ArgumentParser()
 parser.add_argument("command", help="What to set. Can be power, color, temp, bright", metavar='command', choices = ["power", "color", "temp", "bright"])
 parser.add_argument("arg", help='command-specific arg. "on", "red", etc.')
-argcomplete.autocomplete(parser)
 args = parser.parse_args()
+
+def power_on():
+    bulb.turn_on()
+
+def power_off():
+    bulb.turn_off()
+
+def power_toggle():
+    bulb.toggle()
 
 def color_red():
     bulb.set_rgb(255, 0, 0)
@@ -27,57 +36,53 @@ def color_hex(hex):
     red, green, blue = tup
     bulb.set_rgb(red, green, blue)
 
+# The yeelight module gracefully handles out of range values, so we only warn
+# the user if the value is out of range
+def set_brightness(bright):
+    if bright not in range(1,101):
+        print("Value out of range (1-100). Using closest valid value...")
+    bulb.set_brightness(bright)
+
+def set_temperature(temp):
+    if temp not in range(2500, 6501):
+        print("Value out of range (2500-6500). Using closest valid value...")
+    bulb.set_color_temp(temp)
+
 if args.command == "power":
-    valid = ['on','off','toggle']
-    if args.arg in valid:
-        if args.arg == 'on':
-            bulb.turn_on()
-        if args.arg == 'off':
-            bulb.turn_off()
-        if args.arg == 'toggle':
-            bulb.toggle()
-    else:
-        print('Invalid argument. Supported args: "on", "off", "toggle"')
+    switcher = {
+        'on': power_on,
+        'off': power_off,
+        'toggle': power_toggle,
+    }
+    func = switcher.get(args.arg, lambda: print('Invalid argument. Supported args: "on", "off", "toggle"'))
+    func()
 
 if args.command == "color":
-    valid = ['red', 'green', 'blue', 'white']
-    is_hex =
-    if args.arg in valid or re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', args.arg):
-        if args.arg == 'red':
-            bulb.set_rgb(255, 0, 0)
-
-        if args.arg == 'green':
-            bulb.set_rgb(0, 255, 0)
-            break
-        if args.arg == 'blue':
-            bulb.set_rgb(0, 0, 255)
-            break
-        if args.arg == 'white':
-            bulb.set_rgb(255, 255, 255)
-            break
-        if re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', args.arg):
-            args.arg = args.arg.lstrip('#')
-            tup = tuple(int(args.arg[i:i+2], 16) for i in (0, 2 ,4))
-            red, green, blue = tup
-            bulb.set_rgb(red, green, blue)
-            break
+    if re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', args.arg):
+        hex = args.arg
+        args.arg = 'hex'
+    switcher = {
+        'red': color_red,
+        'green': color_green,
+        'blue': color_blue,
+        'hex': color_hex,
+    }
+    func = switcher.get(args.arg, lambda: print('Invalid argument. Supported args: "red", "green", "blue", "white", or "#hex"'))
+    if args.arg == 'hex':
+        func(hex)
     else:
-        print('Invalid argument. Supported args: "red", "green", "blue", "white", or "#hex"')
+        func()
+
 if args.command == "bright":
     try:
         bright = int(args.arg)
     except:
         exit("Not a number")
-    if bright in range(1,101):
-        bulb.set_brightness(bright)
-    else:
-        print("Out of range. Use a number 1-100")
+    set_brightness(bright)
+
 if args.command == "temp":
     try:
         temp = int(args.arg)
     except:
         exit("Not a number")
-    if temp >= 2500 and temp <= 6500:
-        bulb.set_color_temp(temp)
-    else:
-        print("Out of range. Use a number 2500-6500")
+    set_temperature(temp)
