@@ -9,33 +9,57 @@ bulb = Bulb("192.168.1.150")
 parser = argparse.ArgumentParser()
 help = "What to set. Can be power, color, temp, bright"
 choices = ["power", "color", "temp", "bright"]
-parser.add_argument("command", help=help, metavar='command', choices=choices)
-parser.add_argument("arg", help='command-specific arg. "on", "red", etc.')
+
+subparsers = parser.add_subparsers(help='command')
+
+parser_power = subparsers.add_parser("power", help='Turn the bulb on or off')
+parser_power.add_argument('power_value', choices=['on', 'off', 'toggle'], help='Supported commands', metavar="value")
+
+parser_bright = subparsers.add_parser("bright", help="Set the bulb's brightness")
+parser_bright.add_argument('bright_value', type=int, choices=range(1,101), help='Brightness value, 1-100', metavar="value")
+
+parser_color = subparsers.add_parser("color", help="Set the bulb's color")
+parser_color.add_argument('color_value', help='Supported colors: red, green, blue, white, or "#HEX"', metavar="value")
+
+parser_temp = subparsers.add_parser("temp", help="Set the bulb's white temperature")
+parser_temp.add_argument('temp_value', choices=range(2500,6501), help="Temperature value, 2500-6500", metavar="value" )
+
 args = parser.parse_args()
+#print(args)
+
+# Used to have a correct feedback output when using out of range values for bright and temp
+def clamp(n, minn, maxn):
+    return max(min(maxn, n), minn)
 
 
 def power_on():
     bulb.turn_on()
+    print("Turning the light on...")
 
 
 def power_off():
     bulb.turn_off()
+    print("Turning the light off...")
 
 
 def power_toggle():
     bulb.toggle()
+    print("Toggling the light...")
 
 
 def color_red():
     bulb.set_rgb(255, 0, 0)
+    print("Setting the light to red...")
 
 
 def color_green():
     bulb.set_rgb(0, 255, 0)
+    print("Setting the light to green...")
 
 
 def color_blue():
     bulb.set_rgb(0, 0, 255)
+    print("Setting the light to blue...")
 
 
 def color_accent():
@@ -46,59 +70,53 @@ def color_hex(hex):
     hex = hex.lstrip('#')
     red, green, blue = tuple(int(hex[i:i+2], 16) for i in (0, 2, 4))
     bulb.set_rgb(red, green, blue)
+    print("Setting the light to RGB(", str(red), str(green), str(blue),")...")
 
-
-# The yeelight module gracefully handles out of range values, so we only warn
-# the user if the value is out of range
+## TODO: Choose between "graceful" out of range handling (this) or hard(argparse choicess)
+# If value is out of range, we just restrict it to our range
 def set_brightness(bright):
     if bright not in range(1, 101):
         print("Value out of range (1-100). Using closest valid value...")
+        bright = clamp(bright, 1, 100)
     bulb.set_brightness(bright)
+    print("Setting the brightness to ", bright, "%...")
 
 
 def set_temperature(temp):
     if temp not in range(2500, 6501):
         print("Value out of range (2500-6500). Using closest valid value...")
     bulb.set_color_temp(temp)
+    print("Setting the temperature to ", temp, "K...")
 
 
-if args.command == "power":
+if hasattr(args, 'power_value'):
     switcher = {
         'on': power_on,
         'off': power_off,
-        'toggle': power_toggle,
+        'toggle': power_toggle
     }
-    func = switcher.get(args.arg, lambda: print('Invalid argument.\
-    Supported args: "on", "off", "toggle"'))
+    func = switcher.get(args.power_value)
     func()
 
-if args.command == "color":
-    if re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', args.arg):
-        hex = args.arg
-        args.arg = 'hex'
+if hasattr(args, 'bright_value'):
+    set_brightness(args.bright_value)
+
+if hasattr(args, 'temp_value'):
+    set_temperature(args.temp_value)
+
+if hasattr(args, 'color_value'):
+    if re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', args.color_value):
+        hex = args.color_value
+        args.color_value = 'hex'
     switcher = {
         'red': color_red,
         'green': color_green,
         'blue': color_blue,
         'hex': color_hex,
     }
-    func = switcher.get(args.arg, lambda: print('Invalid argument.\
-    Supported args: "red", "green", "blue", "white", or "#hex"'))
-    if args.arg == 'hex':
+    func = switcher.get(args.color_value, lambda: print('Invalid argument.\
+    Supported args: red, green, blue, white, or "#hex"'))
+    if args.color_value == 'hex':
         func(hex)
     else:
         func()
-
-if args.command == "bright":
-    try:
-        bright = int(args.arg)
-    except ValueError:
-        exit("Not a number")
-    set_brightness(bright)
-
-if args.command == "temp":
-    try:
-        temp = int(args.arg)
-    except ValueError:
-        exit("Not a number")
-    set_temperature(temp)
