@@ -38,7 +38,6 @@ You can now turn your Yeelight on and off using
 `$ yee power toggle`!
 
 ## TODO:
-* Ask for the bulb's IP when first run (you have to manually edit it at the moment)
 * Support natural values for `bright` and `temp`: (e.g. "full", "cold", etc.)
 * Multi-bulb support
 * Scene support

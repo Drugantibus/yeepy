@@ -1,19 +1,41 @@
 #!/usr/bin/env python
 from yeelight import Bulb
+import configparser
 import argparse
 import re
+import socket
+import os
 
-bulb = Bulb("192.168.1.150")
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+def config_bulb_ip():
+    bulb_ip = input("Please enter your bulb's IP address: ")
+    try:
+        socket.inet_aton(bulb_ip)
+        config['DEFAULT']['BULB_IP'] = bulb_ip
+        with open('config.ini', 'w') as configfile:
+            config.write(configfile)
+    except socket.error:
+        print("Invalid IP address. Please try again.")
+        config_bulb_ip()
+
+
+try:
+    bulb = Bulb(config['DEFAULT']['BULB_IP'])
+except KeyError as e:
+    print("You have not configured your bulb yet.")
+    config_bulb_ip()
 
 # CLI help message stuff
+# TODO: show help message when called with no arguments
 parser = argparse.ArgumentParser()
-help = "What to set. Can be power, color, temp, bright"
-choices = ["power", "color", "temp", "bright"]
+parser.add_argument('--reset', action='store_true', help="Delete the stored bulb's IP")
 
 subparsers = parser.add_subparsers(help='command')
 
 parser_power = subparsers.add_parser("power", help='Turn the bulb on or off')
-parser_power.add_argument('power_value', choices=['on', 'off', 'toggle'], help='Supported commands', metavar="value")
+parser_power.add_argument('power_value', choices=['on', 'off', 'toggle'], help='Supported commands')
 
 parser_bright = subparsers.add_parser("bright", help="Set the bulb's brightness")
 parser_bright.add_argument('bright_value', type=int, choices=range(1,101), help='Brightness value, 1-100', metavar="value")
@@ -25,7 +47,6 @@ parser_temp = subparsers.add_parser("temp", help="Set the bulb's white temperatu
 parser_temp.add_argument('temp_value', choices=range(2500,6501), help="Temperature value, 2500-6500", metavar="value" )
 
 args = parser.parse_args()
-#print(args)
 
 # Used to have a correct feedback output when using out of range values for bright and temp
 def clamp(n, minn, maxn):
@@ -72,8 +93,7 @@ def color_hex(hex):
     bulb.set_rgb(red, green, blue)
     print("Setting the light to RGB(", str(red), str(green), str(blue),")...")
 
-## TODO: Choose between "graceful" out of range handling (this) or hard(argparse choicess)
-# If value is out of range, we just restrict it to our range
+# TODO: Choose between "graceful" out of range handling (this) or hard (argparse choices)
 def set_brightness(bright):
     if bright not in range(1, 101):
         print("Value out of range (1-100). Using closest valid value...")
@@ -120,3 +140,6 @@ if hasattr(args, 'color_value'):
         func(hex)
     else:
         func()
+
+if args.reset is True:
+    os.remove('config.ini')
