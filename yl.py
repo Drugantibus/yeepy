@@ -6,48 +6,6 @@ import re
 import socket
 import os
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-
-def config_bulb_ip():
-    bulb_ip = input("Please enter your bulb's IP address: ")
-    try:
-        socket.inet_aton(bulb_ip)
-        config['DEFAULT']['BULB_IP'] = bulb_ip
-        with open('config.ini', 'w') as configfile:
-            config.write(configfile)
-    except socket.error:
-        print("Invalid IP address. Please try again.")
-        config_bulb_ip()
-
-
-try:
-    bulb = Bulb(config['DEFAULT']['BULB_IP'])
-except KeyError as e:
-    print("You have not configured your bulb yet.")
-    config_bulb_ip()
-
-# CLI help message stuff
-# TODO: show help message when called with no arguments
-parser = argparse.ArgumentParser()
-parser.add_argument('--reset', action='store_true', help="Delete the stored bulb's IP")
-
-subparsers = parser.add_subparsers(help='command')
-
-parser_power = subparsers.add_parser("power", help='Turn the bulb on or off')
-parser_power.add_argument('power_value', choices=['on', 'off', 'toggle'], help='Supported commands')
-
-parser_bright = subparsers.add_parser("bright", help="Set the bulb's brightness")
-parser_bright.add_argument('bright_value', type=int, choices=range(1,101), help='Brightness value, 1-100', metavar="value")
-
-parser_color = subparsers.add_parser("color", help="Set the bulb's color")
-parser_color.add_argument('color_value', help='Supported colors: red, green, blue, white, or "#HEX"', metavar="value")
-
-parser_temp = subparsers.add_parser("temp", help="Set the bulb's white temperature")
-parser_temp.add_argument('temp_value', choices=range(2500,6501), help="Temperature value, 2500-6500", metavar="value" )
-
-args = parser.parse_args()
-
 # Used to have a correct feedback output when using out of range values for bright and temp
 def clamp(n, minn, maxn):
     return max(min(maxn, n), minn)
@@ -83,8 +41,8 @@ def color_blue():
     print("Setting the light to blue...")
 
 
-def color_accent():
-    bulb.set_rgb(0, 243, 200)
+def color_white():
+    bulb.set_rgb(255, 255, 255)
 
 
 def color_hex(hex):
@@ -107,6 +65,49 @@ def set_temperature(temp):
         print("Value out of range (2500-6500). Using closest valid value...")
     bulb.set_color_temp(temp)
     print("Setting the temperature to ", temp, "K...")
+
+
+def config_bulb_ip():
+    bulb_ip = input("Please enter your bulb's IP address: ")
+    try:
+        socket.inet_aton(bulb_ip)
+        config['DEFAULT']['BULB_IP'] = bulb_ip
+        with open('config.ini', 'w') as configfile:
+            config.write(configfile)
+    except socket.error:
+        print("Invalid IP address. Please try again.")
+        config_bulb_ip()
+
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+try:
+    bulb = Bulb(config['DEFAULT']['BULB_IP'])
+except KeyError as e:
+    print("You have not configured your bulb yet.")
+    config_bulb_ip()
+
+# CLI help message stuff
+# TODO: show help message when called with no arguments
+parser = argparse.ArgumentParser()
+parser.add_argument('--reset', action='store_true', help="Delete the stored bulb's IP")
+
+subparsers = parser.add_subparsers(help='command')
+
+parser_power = subparsers.add_parser("power", help='Turn the bulb on or off')
+parser_power.add_argument('power_value', choices=['on', 'off', 'toggle'], help='Supported commands')
+
+parser_bright = subparsers.add_parser("bright", help="Set the bulb's brightness")
+parser_bright.add_argument('bright_value', type=int, choices=range(1,101), help='Brightness value, 1-100', metavar="value")
+
+parser_color = subparsers.add_parser("color", help="Set the bulb's color")
+parser_color.add_argument('color_value', help='Supported colors: red, green, blue, white, or "#HEX"', metavar="value")
+
+parser_temp = subparsers.add_parser("temp", help="Set the bulb's white temperature")
+parser_temp.add_argument('temp_value', choices=range(2500,6501), help="Temperature value, 2500-6500", metavar="value" )
+
+args = parser.parse_args()
 
 
 if hasattr(args, 'power_value'):
@@ -132,6 +133,7 @@ if hasattr(args, 'color_value'):
         'red': color_red,
         'green': color_green,
         'blue': color_blue,
+        'white': color_white,
         'hex': color_hex,
     }
     func = switcher.get(args.color_value, lambda: print('Invalid argument.\

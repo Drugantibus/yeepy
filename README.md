@@ -28,11 +28,11 @@ Install the only dependency:
 
 Run
 
-`$ git clone https://github.com/electrocamel/yl.py .yl`
+`$ git clone https://github.com/electrocamel/yl.py ~/.yl`
 
 and then add an alias to your `.bashrc` or `.zshrc`:
 
-`alias yee="python .yl/yl.py"`.
+`alias yee="python ~/.yl/yl.py"`.
 
 You can now turn your Yeelight on and off using
 `$ yee power toggle`!
@@ -40,6 +40,8 @@ You can now turn your Yeelight on and off using
 ## TODO:
 * Support natural values for `bright` and `temp`: (e.g. "full", "cold", etc.)
 * Multi-bulb support
+* Non-color bulb support
 * Scene support
+* GUI
 
 This is very much a work-in-progress. Any and all contributions, issues included, are very appreciated.
