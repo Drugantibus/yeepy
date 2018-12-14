@@ -3,9 +3,9 @@
 ##### A command line tool for controlling Yeelight RGB lightbulbs
 
 ## Usage:
-`$ python yl.py command argument`
+`$ python yl.py [-h] [--reset] command argument`
 
-`command` can be `power`, `bright`, `temp`, or `color`.
+`command` can be `power`, `bright`, `temp`, `color`, or `status`.
 
 `argument` is dependent on `command`:
 * `power`:
@@ -21,6 +21,7 @@
   - `green`
   - `blue`
   - a hex code in the form `'#ffffff'`
+* `status` takes no argument
 
 ## Installation:
 Install the only dependency:
