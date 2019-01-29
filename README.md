@@ -1,9 +1,9 @@
-# yl.py
+# yeepy
 
 ##### A command line tool for controlling Yeelight RGB lightbulbs
 
 ## Usage:
-`$ python yl.py [-h] [--reset] command argument`
+`$ python yee.py [-h] [--reset] command argument`
 
 `command` can be `power`, `bright`, `temp`, `color`, or `status`.
 
@@ -29,11 +29,11 @@ Install the only dependency:
 
 Run
 
-`$ git clone https://github.com/electrocamel/yl.py ~/.yl`
+`$ git clone https://github.com/drugantibus/yeepy ~/yeepy`
 
 and then add an alias to your `.bashrc` or `.zshrc`:
 
-`alias yee="python ~/.yl/yl.py"`.
+`alias yee="python ~/yeepy/yeel.py"`.
 
 You can now turn your Yeelight on and off using
 `$ yee power toggle`!
