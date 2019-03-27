@@ -105,32 +105,36 @@ except KeyError as e:
 
 # CLI help message stuff
 # TODO: show help message when called with no arguments
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(epilog="You can also use the initial of each command.")
 parser.add_argument('--reset', action='store_true',
                     help="Delete the stored bulb's IP")
 
 subparsers = parser.add_subparsers(help='command')
 
 parser_power = subparsers.add_parser("power", help='Turn the bulb on or off')
-parser_power.add_argument('power_value', choices=['on', 'off', 'toggle'],
-                          help='Supported commands')
+parser_power.add_argument('power_value', choices=['on', 'off', 'toggle'], help='Supported commands')
+parser_power = subparsers.add_parser("p")
+parser_power.add_argument('power_value', choices=['on', 'off', 'toggle'], help='Supported commands')
 
 parser_bright = subparsers.add_parser("bright", help="Set the bulb's brightness")
-parser_bright.add_argument('bright_value', type=int, choices=range(1,101),
-                           help='Brightness value, 1-100', metavar="value")
+parser_bright.add_argument('bright_value', type=int, choices=range(1,101), help='Brightness value, 1-100', metavar="value")
+parser_bright = subparsers.add_parser("b")
+parser_bright.add_argument('bright_value', type=int, choices=range(1,101), help='Brightness value, 1-100', metavar="value")
 
 parser_color = subparsers.add_parser("color", help="Set the bulb's color")
-parser_color.add_argument('color_value',
-                          help='Supported colors: red, green, blue, white, or "#HEX"',
-                          metavar="value")
+parser_color.add_argument('color_value', help='Supported colors: red, green, blue, white, or "#HEX"', metavar="value")
+parser_color = subparsers.add_parser("c")
+parser_color.add_argument('color_value', metavar="value")
 
 parser_temp = subparsers.add_parser("temp", help="Set the bulb's white temperature")
-parser_temp.add_argument('temp_value', choices=range(2500,6501), type=int,
-                         help="Temperature value, 2500-6500", metavar="value" )
+parser_temp.add_argument('temp_value', choices=range(2500,6501), type=int, help="Temperature value, 2500-6500", metavar="value" )
+parser_temp = subparsers.add_parser("t")
+parser_temp.add_argument('temp_value', choices=range(2500,6501), type=int, help="Temperature value, 2500-6500", metavar="value" )
 
 parser_status = subparsers.add_parser("status", help="Get the bulb's current status")
-parser_status.add_argument("status", action="store_true",
-                           help="Get the bulb's current status")
+parser_status.add_argument("status", action="store_true", help="Get the bulb's current status")
+parser_status = subparsers.add_parser("s")
+parser_status.add_argument("status", action="store_true", help="Get the bulb's current status")
 
 args = parser.parse_args()
 
@@ -156,9 +160,13 @@ if hasattr(args, 'color_value'):
         args.color_value = 'hex'
     switcher = {
         'red': color_red,
+        'r': color_red,
         'green': color_green,
+        'g': color_green,
         'blue': color_blue,
+        'b': color_blue,
         'white': color_white,
+        'w': color_white,
         'hex': color_hex,
     }
     func = switcher.get(args.color_value, lambda: print('Invalid argument.\
