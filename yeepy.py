@@ -7,6 +7,7 @@ import socket
 import os
 from YeeBulb import ColorBulb, WhiteBulb
 
+conffile = os.environ['HOME'] + '/.config/yeepy.ini'
 
 # Used to have a correct feedback output when using out of range values for bright and temp
 def clamp(n, minn, maxn):
@@ -20,7 +21,7 @@ def config_bulb_ip():
         socket.inet_aton(bulb_ip)
         config['DEFAULT']['BULB_IP'] = bulb_ip
         config['DEFAULT']['BULB_TYPE'] = bulb_type
-        with open('config.ini', 'w') as configfile:
+        with open(conffile, 'w') as configfile:
             config.write(configfile)
     except socket.error:
         print("Invalid IP address. Please try again.")
@@ -28,7 +29,7 @@ def config_bulb_ip():
 
 
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read(conffile)
 
 # CLI help message stuff
 # TODO: show help message when called with no arguments
@@ -108,7 +109,7 @@ if hasattr(args, 'temp_value'):
     bulb.set_temperature(temp)
 
 if hasattr(args, 'color_value'):
-    if isinstance(bulb, WhiteBulb):
+    if type(bulb) == WhiteBulb:
         print("This function isn't supported by non-RGB lightbulbs.")
         exit()
     if re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', args.color_value):
